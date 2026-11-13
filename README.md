@@ -394,3 +394,8 @@ MIT.
 The boot sound and any tracks in `public/audio/` ship with the project for the
 demo. If you go on to monetise something built on this, clearing the rights to
 that audio is your responsibility.
+
+## Deployment
+
+- [Hostinger staging deployment plan](docs/HOSTINGER-STAGING-DEPLOYMENT.md) — isolated staging only; does not modify the existing CYBR COM public website.
+- [Free and open-model AI architecture](docs/CYBR-FREE-AI-ARCHITECTURE.md)
