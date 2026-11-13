@@ -1,3 +1,5 @@
+> **Repository clarification (2026-11-13):** The live CYBR COM website is connected to `cybrcops/Cybrcom`, not this repository. The current command-console UI candidate is also in `cybrcops/Cybrcom` (`feat/milestone-1-honest-demo`, an unvalidated synthetic demo draft). Do not use this document or the `hostinger-staging` branch in this repository as the deployment source for the existing CYBR COM website or its command-console staging. The authoritative staging plan is [in the Cybrcom repository](https://github.com/cybrcops/Cybrcom/blob/feat/mission-center-security-operations/docs/DEPLOYMENT-TOPOLOGY-HOSTINGER-NUC.md). This repository remains a separate JARVIS reference/runtime project.
+
 # CYBR COMMAND — Hostinger + NUC Staging Deployment
 
 **Status:** Approved architecture / staging preparation only  
