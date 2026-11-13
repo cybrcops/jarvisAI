@@ -15,6 +15,23 @@ listens through the browser's own speech, and everything still works.
 
 ---
 
+## CYBR fork direction — free and open-model AI
+
+This CYBR fork is being adapted into the JARVIS interface for CYBR COMMAND. The target is a provider-neutral runtime that uses the existing self-hosted FreeLLMAPI gateway and local open-weight models, with no additional paid AI/API dependency.
+
+**Important: the current bridge still uses the Claude Agent SDK.** The free-model runtime is an implementation target, not yet a working feature. Until the provider adapter is implemented and tested, the current Claude-based bridge behavior remains unchanged.
+
+The architecture and staged implementation plan are in [docs/CYBR-FREE-AI-ARCHITECTURE.md](docs/CYBR-FREE-AI-ARCHITECTURE.md). It covers:
+- FreeLLMAPI model discovery, streaming, tool calls, and free-provider failover.
+- Local model inference and a local-only privacy mode.
+- Task-based model routing for chat, reasoning, coding, cyber analysis, embeddings, and voice.
+- No silent paid fallback, no browser-exposed API keys, and server-side tool authorization.
+- CYBR COMMAND as the authority for workspace isolation, approvals, audit, budgets, and emergency stop.
+
+Free hosted quotas are not guaranteed and may require provider keys. Local models avoid per-token API charges but are limited by available hardware and model licenses. The UI must distinguish local, free-tier hosted, and paid routes.
+
+---
+
 ## Requirements
 
 **In one line:** a Claude Code subscription, plus two free things every computer
