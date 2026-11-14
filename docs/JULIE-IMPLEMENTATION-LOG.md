@@ -165,3 +165,48 @@ Repository `cybrcops/Cybrcom`, branch `main`:
 3. Define a read-only Julie adapter contract against verified `cybrcops-platform` endpoints, with explicit CYBR MISSION/CYBRCOPS/customer scopes and source/freshness metadata.
 4. Refactor Cybrcom's model path behind a free/local-only provider interface; remove paid default fallback and make zero budget a hard disable.
 5. Design proper owner identity/MFA, action-bound approval hash, immutable audit, and independent kill switch before any remote command-console access.
+
+
+## 2026-11-14 — Live CYBR MISSION Supabase catalog and advisor review
+
+### Work performed
+
+- Confirmed connected GitHub metadata for `cybrcops/cybrcops-platform` (private, default branch `main`, observed head `dc45caf5e1946bead8e9ea9814a526044ee1a43b`) and `cybrcops/jarvisAI` (public; review branch `feat/julie-repository-audit`).
+- Located the actual SQL history under `cybrcops-platform/supabase/live/`; it is not a conventional `supabase/migrations/` directory. Read the live migration README and SQL 019–023 plus the security-foundation design document.
+- Connected Supabase project listing identifies `cybrmission-portal` as ACTIVE_HEALTHY and `cybrmission-security-lab` as INACTIVE. Only the portal was queried, and only for read-only metadata/catalog information.
+- Queried live migration history: 28 entries, through `public_permission_check_023`.
+- Queried live public schema: 91 tables, 91 RLS enabled, 375 policies. A catalog query confirmed all 91 ordinary public tables had RLS and at least one policy.
+- Inspected selected policy definitions and SECURITY DEFINER function definitions. No business/customer row data was queried.
+- Retrieved live Supabase security, health, and performance advisors.
+
+### Findings and decisions
+
+- The prior audit's statement that actual migration/RLS SQL had not been located is superseded: SQL is present in `supabase/live/`, and the connected project records migrations 019–023.
+- Production catalog is consistent with the intended 019–023 hardening at a structural level: RLS enabled on all 91 public tables; 375 policies; six private and two public SECURITY DEFINER functions.
+- Security advisor warning: leaked-password protection is disabled. No setting change made.
+- Performance advisor: unused-index warnings plus four multiple-permissive-policy warnings on dashboard_layouts, dashboard_widgets, incident_tasks, and invites. No index/policy changes made.
+- `public.rls_auto_enable()` catches all exceptions while attempting RLS enablement and logs rather than rethrows. Review as a fail-closed DDL guard; a failed enablement may not abort the originating table creation.
+- `public.soc_ingest_feed_batch(text,jsonb)` is SECURITY DEFINER, empty search_path, and ACL-limited to postgres/service_role. It writes event/incident/heartbeat records and must remain a narrow server integration path, not a general Julie tool.
+- `private.handle_new_user()` is SECURITY DEFINER with search_path public; ACL is restricted to postgres/service_role/supabase_auth_admin. Review the exception and harden only after compatibility proof.
+- Structural catalog inspection is not a tenant-isolation test. Do not infer authorization safety from an owner/service-role query.
+
+### Validation actually performed
+
+- Read-only Supabase project metadata, migration history, table metadata, advisor retrieval, and SELECT-only catalog queries against pg_class, pg_policies, pg_proc, and pg_namespace.
+- No customer/business rows were read. No DDL, DML, project settings, credentials, secrets, or migrations were changed.
+- No local CLI, isolated branch, build, test suite, penetration test, external scan, or device test was run.
+- No NUC, Hostinger, Cloudflare, DNS, live website, or production application configuration was changed. The production database was queried only for read-only metadata/catalog state.
+
+### Documentation
+
+- Added `docs/CYBR-MISSION-LIVE-DATABASE-AUDIT.md` on `feat/julie-repository-audit`.
+- Updated `docs/REPOSITORY-CAPABILITY-INVENTORY.md` with verified database evidence and outstanding risks.
+- Updated this log. Changes remain within existing draft PR #1; no merge or deployment.
+
+### Next
+
+1. Review the complete policy inventory and function ACLs in an isolated test environment; test with ordinary authenticated synthetic tenant identities.
+2. Inspect the complete definition/trigger attachment for `rls_auto_enable`, and review `handle_new_user` search-path assumptions.
+3. Build a read-only CYBR MISSION adapter contract from verified endpoints; do not use service-role credentials.
+4. Record explicit connector owner, tenant scope, allowed fields, refresh cadence, and revocation procedure for CYBRCOPS systems before adding cross-business reporting.
+5. Keep production settings, SQL, RLS policies, indexes, and ingestion functions unchanged pending owner approval.
