@@ -379,3 +379,37 @@ No values, tokens, headers, hashes, or secret references were read. No grants, p
 - Added `docs/JULIE-CYBR-MISSION-READ-ADAPTER-CONTRACT.md` with endpoint schema, resource allowlist, auth sequence, trust boundaries, proposed normalized interface, blockers and test plan.
 - Static source inspection only. No endpoint call, token issuance, build, lint, tests, scans, customer row reads, schema changes, permission changes, or production writes.
 - No NUC, Hostinger, Cloudflare, DNS, public website, or production application changes; no secrets or personal data committed.
+
+## 2026-11-14 — AI runtime/workforce component source review (supersedes earlier README-only capability assumptions)
+
+See the detailed `docs/AI-RUNTIME-AND-WORKFORCE-COMPONENT-REVIEW.md` for exact evidence, paths and hashes.
+
+### Upstream drift verified
+- `cybrcops/freellmapi` MIT fork is 8 commits behind `tashfeenahmed/freellmapi`.
+- `cybrcops/ruflo` MIT fork is 3 commits behind `ruvnet/ruflo`; fork package 3.77.0 vs upstream release commit 3.77.1.
+- `cybrcops/VoiceStudio` AGPL-3.0 fork is 35 commits behind `debpalash/VoiceStudio`.
+- `cybrcops/OpenJarvis` Apache-2.0 fork is 1 commit behind `open-jarvis/OpenJarvis`.
+- No upstream sync or merge performed. Review exact fork source and do not infer it contains upstream fixes.
+
+### FreeLLMAPI correction and risk
+- Source confirms a powerful OpenAI-compatible proxy, provider catalog, automatic routing/failover (architecture docs describe up to 20 attempts), encrypted provider-key storage, a single-user unified API key, session-gated admin API, provider probes and SQLite backup scheduler.
+- **Corrected binding statement:** Docker Compose publishes the host port on loopback by default, but the Node server itself defaults `HOST=::` and falls back to `0.0.0.0` when IPv6 is unavailable. A direct source/npm run is therefore not loopback-only by default despite the SECURITY.md summary. Explicitly set and verify `HOST=127.0.0.1` before any future local run. No runtime was started.
+- FreeLLMAPI is documented as a single-user trusted-network tool, not multi-tenant. Automatic routing/fallback and arbitrary configured/custom providers are incompatible with Julie's zero-paid-fallback policy unless an external deny-by-default provider+model allowlist, no-fallback profile and zero-cost gate are enforced and tested.
+- Docker Watchtower profile mounts host Docker socket; keep autoupdate disabled.
+
+### Ruflo execution gate
+- Nested bridge defaults loopback, requires bearer token for non-loopback bind, and denies terminal execution unless `MCP_ENABLE_TERMINAL=true`.
+- Agent, memory, devtools and intelligence tool groups default enabled in the example configuration; child MCP processes are spawned via npx and inherit environment variables other than `MCP_AUTH_TOKEN`.
+- No OS sandbox, tool-level tenant identity, network egress control, file-root enforcement or resource-limit proof established in this source pass. Keep all worker groups disabled until verified; terminal/browser/file/GitHub/network tools remain unavailable to Julie.
+
+### VoiceStudio licensing gate
+- Application is AGPL-3.0; application internal/commercial use is allowed subject to AGPL obligations, but model weights/tokenizers/auxiliary assets are separate.
+- Model inventory identifies 63 model repositories plus seven unresolved asset families; no current model record asserts `commercial_use: true`; review workflow says no production model is currently review-ready. No VoiceStudio model is cleared for CYBR business use on this evidence.
+- MCP supports voice generation, cloning and transcription; path-based files rely on a configured base path, and base64 mode can place audio in agent context. Keep it isolated, no raw audio in prompts/logs, and no admin/high-impact endpoints exposed.
+
+### OpenJarvis research boundary
+- Apache-2.0 local-first framework has agents/engines/tools/MCP/memory/scheduler and many powerful built-in tool imports (file write, shell, Docker shell, Git, DB, HTTP, browser, audio, connectors).
+- Docker sandbox source uses network-none and read-only allowlisted mounts, with 300s timeout and max concurrency 5 defaults; still requires review of container privileges, root filesystem, resource limits, runtime socket, image provenance and actual mount allowlist before use.
+- Candidate research for local inference/evaluation/scheduler/sandbox patterns only; no code reused.
+
+No code/dependency install, upstream sync, runtime launch, model call, build/test, NUC access, production change, or external scan performed.
