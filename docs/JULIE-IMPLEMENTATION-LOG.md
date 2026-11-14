@@ -210,3 +210,11 @@ Repository `cybrcops/Cybrcom`, branch `main`:
 3. Build a read-only CYBR MISSION adapter contract from verified endpoints; do not use service-role credentials.
 4. Record explicit connector owner, tenant scope, allowed fields, refresh cadence, and revocation procedure for CYBRCOPS systems before adding cross-business reporting.
 5. Keep production settings, SQL, RLS policies, indexes, and ingestion functions unchanged pending owner approval.
+
+## 2026-11-14 — Sensitive-column privilege review
+
+- Queried PostgreSQL column privilege metadata only; no column values were read.
+- Confirmed authenticated role SELECT privilege on `api_keys.key_hash`, `integrations.config/secret_reference/last_error`, `webhooks.headers/signing_secret_reference/endpoint_url`, and `soc_ingest_sources.source_key`.
+- This is a confirmed sensitive-column exposure surface, not proof of raw-secret storage or disclosure. RLS restricts rows but does not hide columns.
+- Recorded remediation design: safe-column grants/views, server-side vault references, no sensitive fields in model context/logs, and ordinary-authenticated synthetic tests. No production grants/policies/views/data were changed.
+- Operational impact: read-only metadata query only; no secrets or customer rows read; no NUC/hosting/DNS/live site/production configuration changed.
