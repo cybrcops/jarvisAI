@@ -299,3 +299,43 @@ The detailed update in `docs/PLATFORM-INITIAL-AUDIT.md` supersedes the earlier s
 The detailed `docs/CYBR-COMMAND-CONSOLE-AUDIT.md` supersedes the earlier description of Cybrcom as only a static synthetic frontend. It records the current mixed demo/live behavior, local-only server defaults, limited tool surface, direct Anthropic/fallback conflict, static-token remote-access gap, approval/audit limitations, static roster, browser speech privacy caveat, and absence of a verified Julie/cross-business adapter or installable PWA.
 
 No NUC, Hostinger, Cloudflare, DNS, `site` branch, live website, production service, customer data, or secret was touched in this refresh.
+
+
+## 2026-11-14 — CYBR MISSION live database verification (read-only)
+
+**Source repository:** [cybrcops/cybrcops-platform](https://github.com/cybrcops/cybrcops-platform), branch `main`, observed head `dc45caf5e1946bead8e9ea9814a526044ee1a43b` (2026-11-04).  
+**Connected database:** `cybrmission-portal` (Supabase project ref recorded only in the connected integration; no credentials copied).  
+**Operational impact:** read-only metadata/catalog queries only. No customer rows queried; no DDL, DML, settings, secrets, or project configuration changed.
+
+### Verified live database facts
+
+- Supabase project status: `ACTIVE_HEALTHY`; PostgreSQL 17; region `us-east-2`.
+- Supabase migration history contains 28 migrations through `public_permission_check_023` (019–023 are present).
+- Live catalog reports 91 public tables; all 91 have RLS enabled; all 91 have at least one policy; 375 public policies total.
+- Catalog reports six SECURITY DEFINER functions in `private` and two in `public`.
+- Public SECURITY DEFINER functions observed:
+  - `rls_auto_enable()`: event trigger, owner postgres, execute ACL postgres/service_role, search_path `pg_catalog`. Its body catches all exceptions while enabling RLS and only emits a log; investigate fail-closed behavior because an enable failure is logged but not rethrown.
+  - `soc_ingest_feed_batch(text,jsonb)`: owner postgres, execute ACL postgres/service_role, empty search_path. It validates array type/size (max 500), resolves enabled source key, records feed events, opens/repeats/closes incidents, and updates source heartbeats. It is a consequential privileged write path; preserve service-role-only invocation, validate source provisioning/rotation and feed payload schema, and keep it outside Julie's general tool surface.
+- Private SECURITY DEFINER helper functions use an empty search_path except `private.handle_new_user()`, which uses `search_path=public`; its execute ACL is postgres/service_role/supabase_auth_admin only. Review this remaining search-path exception and ensure no user-controlled object resolution is possible.
+- Selected live RLS policy inspection confirmed restrictive `mfa_gate` policies on inspected business tables, caller identity checks on membership management, organization/permission checks on CRM, ticket and SOC resources, and owner-scoped AI conversation policies. AI message policies derive access through the parent conversation.
+- A catalog query found no public ordinary table lacking RLS or lacking at least one policy.
+
+### Live Supabase advisor findings
+
+- Security advisor: one warning — leaked-password protection disabled. Remediation reference: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection. No setting was changed.
+- Health advisor: no lints returned.
+- Performance advisor: unused-index notices (many indexes; usage window/volume must be considered before any change) and four multiple-permissive-policy warnings:
+  - `dashboard_layouts`: `dashboard_layouts_select` + `dashboard_layouts_write`
+  - `dashboard_widgets`: `dashboard_widgets_select` + `dashboard_widgets_write`
+  - `incident_tasks`: `incident_tasks_select` + `incident_tasks_write`
+  - `invites`: `invites_select` + `invites_write`
+  These are performance warnings, not proof of authorization bypass. Inspect predicate equivalence and actual workload before consolidating.
+
+### Security caveats and next validation
+
+- Migration presence and catalog state are verified against the connected project; this does not independently prove the full behavioral tenant boundary.
+- Do not use owner/service-role queries as proof of RLS. Required next test is a disposable isolated Supabase branch or local Postgres environment with synthetic tenants and ordinary authenticated JWTs.
+- Test same-org allowed reads, cross-org denied reads, customer/client isolation, MSP delegated scope, expired/revoked memberships, AAL1/AAL2 gates, unauthorized CRM/SOC actions, parent-child tenant mismatch, AI conversation/message ownership, secret-bearing API key projections, and privileged SOC feed invocation.
+- Obtain a reproducible sanitized schema and replay only reviewed migrations in isolation. Do not mutate production or create a billable database branch without owner approval.
+- Julie's initial platform adapter remains read-only and should use user-bound JWT sessions, fixed endpoint/resource allowlists, organization scope, permission checks, freshness/source metadata, and explicit customer scope. Never use a service-role key for routine Julie reads.
+
