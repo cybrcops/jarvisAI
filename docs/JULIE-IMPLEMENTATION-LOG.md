@@ -55,3 +55,11 @@
 
 ### Validation status
 Static GitHub source inspection only. No package installation, build, lint, tests, live API calls, security scan, NUC interaction, or device test was performed.
+
+
+## 2026-11-14 — CRM scope decision
+
+- User explicitly directed that Twenty be excluded because CYBR MISSION is no longer using it.
+- Updated the repository capability inventory: Twenty is marked excluded, its prior candidate integration/reuse recommendation is removed, and the dedicated `CRM` repository is the sole CRM codebase under consideration.
+- No Twenty code, APIs, dependencies, or services will be integrated into Julie. Do not spend further audit effort on Twenty unless the user explicitly reverses this decision.
+- No CRM implementation or runtime changes were made as part of this scope update.
