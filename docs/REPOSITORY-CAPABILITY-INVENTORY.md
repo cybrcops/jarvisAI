@@ -353,3 +353,29 @@ The inspected RLS policy for `api_keys`/integration metadata gates rows using `i
 **Required remediation design (not applied):** use explicit safe-column grants/views or narrowly scoped server-side projections; keep raw secrets in an approved server-side vault; separate integration metadata view from credential management; redact `config`, `headers`, `last_error`, source keys, and secret references from model context and ordinary audit logs; add tests that authenticated users with and without `integrations.manage` cannot retrieve protected fields. Preserve organization RLS and do not broaden service-role access.
 
 No values, tokens, headers, hashes, or secret references were read. No grants, policies, views, tables, or application code were changed.
+
+## 2026-11-14 — CYBR MISSION API/authentication source audit and Julie adapter contract
+
+**Target:** `cybrcops/cybrcops-platform`, branch `main`, observed commit `dc45caf5e1946bead8e9ea9814a526044ee1a43b`. Static GitHub source review; exact file SHAs and contract are recorded in `docs/JULIE-CYBR-MISSION-READ-ADAPTER-CONTRACT.md`.
+
+### Verified implementation
+- React Router exposes `POST /api/mission`, `POST /api/crm`, and `GET /api/health`; unmatched API paths return 404.
+- `POST /api/mission` requires a Bearer Supabase access token and passes it to Supabase Auth `getUser(token)`. It binds JWT `sub` to the provider-validated user, requires `aal2`, checks one time-valid active membership for the requested organization, checks active non-customer role, checks role_permissions and permissions, and calls `has_permission` for the same org and capability.
+- The Data API client uses the caller JWT and a publishable/legacy anon key; source explicitly rejects service-role/secret key formats. This is positive evidence of caller-scoped RLS, not an invitation for Julie to bypass the route.
+- `mission-resources.ts` is a closed allowlist of eight resources with explicit safe field projections and per-resource permissions; list results are limited to 100. Count mode is only supported for clients, tickets, alerts, incidents.
+- API wrapper applies rate limiting, request-body caps, no-store/security headers and sanitized request-ID error logging. The mission route uses POST to avoid documented edge-cache risk for per-user GETs.
+- `POST /api/crm` is a write endpoint requiring `crm.manage`; excluded from Julie's read adapter. `GET /api/health` returns only `{ok:true}` and is liveness only, not deep health.
+- Browser auth persists Supabase sessions; workspace selection is stored in localStorage. Server route revalidates identity/membership/permissions, so localStorage is not authority.
+- App route requires AAL2 and staff-role allowlist.
+
+### Integration decision
+- Existing route is the first suitable CYBR MISSION read seam. It is user-bound, not a machine-to-machine service integration.
+- No unattended Julie connector is authorized or implemented yet. Need an owner-approved delegated identity / non-human principal / dedicated server route design, secure token custody, refresh and revocation, explicit organization/resource grants, customer delegation and audit correlation.
+- No service-role key, direct database table access, or privileged RPC use for Julie. Do not trust model-generated organization IDs.
+- Resource projections include lead contact data and invoice amounts; owner briefing should default to minimized summaries/counts and only fetch sensitive business fields for an explicit purpose.
+- Live DB catalog review separately confirms authenticated SELECT privileges on sensitive columns. Route projections must remain a hard boundary until safe-column grants/views and synthetic tests are complete.
+
+### Documentation and validation
+- Added `docs/JULIE-CYBR-MISSION-READ-ADAPTER-CONTRACT.md` with endpoint schema, resource allowlist, auth sequence, trust boundaries, proposed normalized interface, blockers and test plan.
+- Static source inspection only. No endpoint call, token issuance, build, lint, tests, scans, customer row reads, schema changes, permission changes, or production writes.
+- No NUC, Hostinger, Cloudflare, DNS, public website, or production application changes; no secrets or personal data committed.
