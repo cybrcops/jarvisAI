@@ -63,3 +63,29 @@ Static GitHub source inspection only. No package installation, build, lint, test
 - Updated the repository capability inventory: Twenty is marked excluded, its prior candidate integration/reuse recommendation is removed, and the dedicated `CRM` repository is the sole CRM codebase under consideration.
 - No Twenty code, APIs, dependencies, or services will be integrated into Julie. Do not spend further audit effort on Twenty unless the user explicitly reverses this decision.
 - No CRM implementation or runtime changes were made as part of this scope update.
+
+
+## Ongoing documentation requirement (standing project rule)
+
+Every Julie-related work session and repository change must be documented in GitHub. This applies to research, architecture decisions, implementation, configuration changes, integrations, tests, security reviews, blockers, and deferred work.
+
+### Required record for each work item
+- Date and scope: what was requested and which repository/branch/files were involved.
+- Decision and rationale: what was selected, rejected, or deferred, including user-directed exclusions and constraints.
+- Evidence: exact source paths, commit references, documentation, and relevant upstream/project claims; distinguish observed facts from assumptions.
+- Changes: files added/modified/deleted and the resulting commit SHA or PR link.
+- Validation: exact commands/checks performed and their actual results. If not run, say so explicitly; never imply success.
+- Security/licensing: relevant trust boundaries, permissions, dependency/supply-chain concerns, license/provenance, and unresolved rights.
+- Operational impact: state whether NUC, hosting, DNS, production, customer data, credentials, or external services were touched. Record "not touched" when applicable.
+- Follow-up: open questions, blockers, risks, and the next concrete step.
+
+### Repository hygiene rules
+- Keep documentation in the same feature branch/PR as the work it describes whenever practical.
+- Update the relevant architecture/inventory document when a decision changes; update this log for the chronological record.
+- Link related commits, PRs, issues, and source files. Keep claims traceable to evidence.
+- Never commit credentials, tokens, private keys, personal data, raw audio, or other secrets. Redact sensitive values and document only that a secret/configuration exists when necessary.
+- Do not claim a build, test, scan, install, deployment, or runtime action happened without captured evidence.
+- Record user approvals and boundaries; do not treat documentation as authorization to perform an action.
+- Keep draft PRs reviewable. Do not merge or deploy without explicit user approval.
+
+This rule is persistent for all future Julie work, not limited to the current audit PR.
