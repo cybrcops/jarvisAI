@@ -89,3 +89,28 @@ Every Julie-related work session and repository change must be documented in Git
 - Keep draft PRs reviewable. Do not merge or deploy without explicit user approval.
 
 This rule is persistent for all future Julie work, not limited to the current audit PR.
+
+
+## 2026-11-14 — Corrected primary platform and CRM/SOC source of truth
+
+### User clarification
+- User clarified that `cybrcops/cybrcops-platform` is the main CYBR MISSION platform for CRM/SOC and the broader product ecosystem. The separate `cybrcops/CRM` repository is not the main platform.
+
+### Evidence reviewed
+- Read `cybrcops-platform/README.md` on `main`. It describes CYBR MISSION as the primary platform and corporate brand for unified CRM, ITSM, SOC, cybersecurity, and business operations. It lists Mission Control, Mission CRM, Mission Desk, Mission Ops, Mission SOC, Mission Secure, Mission GRC, Mission Finance, Mission AI, and Mission Connect.
+- Read `CRM/README.md` on `main`. It describes a separate CRM domain repository. This does not supersede the user's clarification about the primary platform.
+
+### Corrected decisions
+- `cybrcops-platform` is the primary platform repository, source of truth, and main Julie integration target for CRM/SOC and related platform capabilities.
+- The separate `CRM` repository is not the primary platform and is not to be treated as the primary CRM/SOC integration target. Revisit only for a specifically bounded use if the user directs it.
+- Twenty remains explicitly excluded from Julie's architecture, dependencies, and code reuse.
+- The platform README is a product map, not proof that every listed module is fully implemented. Next audit must inspect platform source, schemas, APIs, tenant model, and service maturity before asserting implementation status.
+
+### GitHub changes
+- Updated `docs/REPOSITORY-CAPABILITY-INVENTORY.md` on `feat/julie-repository-audit` to make this distinction explicit and prioritize platform architecture review.
+- Inventory update commit: 57992261efd2c39edb6bfdd13f7dc09b07e6e745
+- This clarification is documented in this implementation log.
+
+### Validation and operational impact
+- Documentation/source review only; no build, tests, deployment, or runtime integration performed.
+- No NUC, Hostinger, Cloudflare, DNS, production services, or customer data touched.
