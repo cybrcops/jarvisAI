@@ -413,3 +413,18 @@ See the detailed `docs/AI-RUNTIME-AND-WORKFORCE-COMPONENT-REVIEW.md` for exact e
 - Candidate research for local inference/evaluation/scheduler/sandbox patterns only; no code reused.
 
 No code/dependency install, upstream sync, runtime launch, model call, build/test, NUC access, production change, or external scan performed.
+
+## 2026-11-14 — JARVIS foundation source audit (Julie suitability)
+
+See `docs/JARVIS-FOUNDATION-SOURCE-AUDIT.md` for exact source paths and design decisions.
+
+- `jarvisAI` main is MIT, Node >=20, React/Vite/Three.js. The current runtime still imports Claude Agent SDK and Anthropic SDK; FreeLLMAPI/local model support remains a documented target, not an implemented adapter.
+- Direct browser mode enables `dangerouslyAllowBrowser` and reads `VITE_ANTHROPIC_API_KEY`; must be removed/disabled for governed company builds.
+- Local bridge defaults loopback and has Host/Origin gates, a PreToolUse hook, path checks, and SSRF protections. It is still not authenticated to owner/company/customer identities and runs under the current OS user's authority.
+- If `JARVIS_MCP_SERVERS` is unset, bridge passes every configured MCP server from the user's Claude config. Do not inherit home MCP config in Julie; use a closed broker-managed tool registry.
+- Current global `JARVIS_ALLOW_WRITES=1` / `--writes` toggle is not an action-specific approval system. Keep production write capability out of the current bridge.
+- `src/lib/voice.ts` intentionally keeps browser recognition running for the life of the page and listens for wake word/barge-in. This conflicts with Julie's required foreground iPhone push-to-talk; implement a separate PTT lifecycle, no background/continuous microphone.
+- No manifest/service worker found in reviewed `public/` inventory and no PWA plugin in root package. Installable PWA status is not established.
+- Current store is UI-oriented (phase/panels/blades/turns) and does not implement operational inventory, alerts, remediation, approvals, incident timeline, audit, tenant scopes, or Julie/Mira coordination.
+- Reuse only selected UI/animation and reviewed local protections as inspiration. Do not reuse current provider runtime, direct browser key path, auto-imported MCP set, global write switch or continuous wake-word microphone as-is.
+- No code/dependency/runtime changes; static source inspection only. No NUC/hosting/DNS/live site/production/customer data/secrets touched.
