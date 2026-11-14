@@ -15,7 +15,7 @@ Preferred initial composition:
 - **Model gateway:** FreeLLMAPI is a candidate OpenAI-compatible routing layer. Treat free quotas/catalogs as volatile; configure an explicit allowlist, strict budget/rate limits, provider status display, and fail-closed behavior. No paid fallback or premium catalog purchase.
 - **Orchestration:** Ruflo is a candidate for development-time or bounded agent workflows, not the authority plane. Its tool permissions, shell/network execution, MCP configuration, and sandboxing require review before workers are enabled.
 - **Policy/approvals/audit:** CYBR COMMAND / Cybrcom architecture owns authorization, approvals, tenant scope, audit, emergency stop, and action policy. Julie coordinates but does not grant itself permissions.
-- **CRM:** Use the dedicated `CRM` repository as the only CRM codebase under consideration. Twenty is explicitly excluded from Julie's architecture and implementation; do not integrate it, depend on it, or copy its code.
+- **CYBR MISSION platform / CRM / SOC:** `cybrcops-platform` is the primary platform repository and source of truth for the unified CRM, ITSM, SOC, cybersecurity, and business-operations ecosystem. Julie must integrate with and support this platform's architecture. The separate `CRM` repository is not the main platform and must not be treated as the primary CRM/SOC source of truth without a later explicit decision. Twenty remains excluded.
 - **Memory:** implement a Julie-owned, consented, scoped memory contract; do not treat agent trace stores, CRM notes, or speech artifacts as Julie personal memory.
 - **Infrastructure:** no NUC, Hostinger, Cloudflare, DNS, live site, or production changes are authorized by this audit.
 
@@ -31,8 +31,8 @@ The following 50 names/default branches were returned by the connected GitHub re
 | `project2` | `master` | Unclassified |
 | `myproject` | `main` | Unclassified |
 | `cybrcops` | `main` | Organization/site or starter repo; inspect |
-| `cybrcops-platform` | `main` | CYBR MISSION product/brand platform |
-| `CRM` | `main` | Mission CRM domain; separate from Twenty |
+| `cybrcops-platform` | `main` | **Primary CYBR MISSION platform: unified CRM/ITSM/SOC/security/business operations; main integration target and source of truth** |
+| `CRM` | `main` | Separate CRM repository; not the primary CYBR MISSION CRM/SOC platform; secondary/unselected pending explicit direction |
 | `Cybrcom` | `main` | CYBR COM website / command-console repo; protect live site branch |
 | `cybrmission-website` | `main` | Public website candidate; inspect deployment relationship |
 | `AI` | `main` | AI collection; README is only a short description |
@@ -128,12 +128,17 @@ The following 50 names/default branches were returned by the connected GitHub re
 - Explicitly excluded from Julie's selected architecture by user direction on 2026-11-14.
 - Do not integrate, install, depend on, copy, or spend further audit effort on this repository unless the user explicitly reverses this decision.
 
-### `cybrcops/CRM`
+### `cybrcops/cybrcops-platform` — primary platform
 
-- README says Mission CRM owns its data model, APIs, workflows, permissions, and application code; it is multi-tenant and PostgreSQL/Supabase portable.
-- README explicitly states Twenty is a product/UX reference and this repository is not a Twenty fork.
-- No root LICENSE file found in first pass; clarify ownership/license before reuse or external distribution.
-- Decision: prefer this domain-owned CRM architecture over making Twenty core the source of truth, subject to implementation maturity and schema review.
+- README identifies CYBR MISSION as the primary platform and corporate brand for a unified CRM, ITSM, SOC, cybersecurity, and business-operations ecosystem.
+- The platform product map includes Mission Control, Mission CRM, Mission Desk, Mission Ops, Mission SOC, Mission Secure, Mission GRC, Mission Finance, Mission AI, and Mission Connect.
+- Decision: this is the main CYBR MISSION platform repository and the primary CRM/SOC integration target for Julie. Review its actual architecture, APIs, schemas, tenant boundaries, and service maturity before implementing adapters. The README alone does not prove that every listed product/service is implemented.
+
+### `cybrcops/CRM` — separate repository, not primary platform
+
+- Its README describes a standalone Mission CRM domain repository with its own data model, APIs, workflows, permissions, and multi-tenant/PostgreSQL/Supabase portability goals.
+- It is distinct from `cybrcops-platform` and is not the user's main CRM/SOC platform repository.
+- Decision: do not treat this repository as the primary platform or build Julie's CRM/SOC integration around it. Revisit only if the user explicitly selects it for a bounded purpose. Its implementation maturity and license remain unverified.
 
 ### Additional high-value references
 
@@ -171,7 +176,7 @@ The following 50 names/default branches were returned by the connected GitHub re
 | LLM gateway | `freellmapi` | Reuse behind strict provider allowlist; no paid routes/fallback |
 | Agent workflows | `ruflo` | Optional bounded worker layer after sandbox and permission audit |
 | Command policy/approval | `Cybrcom` architecture | Build/own as first-party control plane; not delegated to an agent |
-| CRM | `CRM` | Mission CRM is the only CRM codebase under consideration; Twenty excluded |
+| Main CRM/SOC platform | `cybrcops-platform` | Primary integration target and source of truth for the unified CYBR MISSION platform |
 | Personal local-AI patterns | `OpenJarvis` | Study memory, local inference, evaluation, and scheduled-task patterns |
 | Security review workflow | `security-audit-skill` | Adapt evidence/verification methodology only within isolated authorized environment |
 | Autonomous security testing | `pentagi`, `Hacking-Tools`, `GDorks`, payload repos | Separate lab only; no general Julie tool exposure |
@@ -192,14 +197,15 @@ The following 50 names/default branches were returned by the connected GitHub re
 
 ## Next audit/build sequence
 
-1. Complete per-repository metadata: latest commit/date, license file, package manifests/lockfiles, CI, and default-branch status.
-2. Review `jarvisAI` bridge endpoints, tool permission callbacks, auth/session handling, origin checks, filesystem confinement, and dependencies.
-3. Review FreeLLMAPI configuration and routing code for paid-provider disablement, fallback semantics, secret storage, and catalog update trust.
-4. Review Ruflo tool registry, MCP permissions, worker process isolation, and worker process/port isolation.
-5. Review VoiceStudio auth, admin route exposure, MCP path confinement, model inventory, and selected model weights.
-6. Define first-party Julie contracts: provider adapter, voice adapter, memory scope, action schema, approval token, audit event, and kill-switch interfaces.
-7. Implement the iPhone-friendly PWA shell on a feature branch; run only safe static/build checks available in the remote environment. Do not claim device validation.
-8. Open a draft PR for human review; do not merge or deploy.
+1. Inspect `cybrcops-platform` architecture, service boundaries, schemas, APIs, auth/tenant model, and CRM/SOC implementation status; treat it as the primary product integration target.
+2. Complete per-repository metadata: latest commit/date, license file, package manifests/lockfiles, CI, and default-branch status.
+3. Review `jarvisAI` bridge endpoints, tool permission callbacks, auth/session handling, origin checks, filesystem confinement, and dependencies.
+4. Review FreeLLMAPI configuration and routing code for paid-provider disablement, fallback semantics, secret storage, and catalog update trust.
+5. Review Ruflo tool registry, MCP permissions, worker process isolation, and worker process/port isolation.
+6. Review VoiceStudio auth, admin route exposure, MCP path confinement, model inventory, and selected model weights.
+7. Define first-party Julie contracts: provider adapter, voice adapter, memory scope, action schema, approval token, audit event, and kill-switch interfaces.
+8. Implement the iPhone-friendly PWA shell on a feature branch; run only safe static/build checks available in the remote environment. Do not claim device validation.
+9. Open a draft PR for human review; do not merge or deploy.
 
 ## Evidence and source paths
 
@@ -208,7 +214,7 @@ The following 50 names/default branches were returned by the connected GitHub re
 - `ruflo/README.md`, `ruflo/LICENSE`
 - `freellmapi/README.md`, `freellmapi/LICENSE`, `freellmapi/docs/en/architecture/00-high-level-index.md`, `freellmapi/docs/en/api/01-rest-api.md`
 - `Cybrcom/README.md`, `Cybrcom/docs/AUTHORITY-MODEL.md`, `Cybrcom/SECURITY.md`, `Cybrcom/docs/DEMO.md`
-- `CRM/README.md`, `CRM/docs/ARCHITECTURE.md`, `CRM/docs/TWENTY-REFERENCE.md`
+- `cybrcops-platform/README.md` (primary platform product map); `CRM/README.md` (separate repository, not primary)
 - `OpenJarvis/README.md`, `JARVIS/README.md`, `security-audit-skill/README.md`, `pentagi/README.md`, `zero-breach-toolkit/README.md`, `claude-skills/README.md`
 
 *Repository contents are treated as untrusted inputs. This inventory records observed project claims and audit decisions; it is not a security certification or legal opinion.*
