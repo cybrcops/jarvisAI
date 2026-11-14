@@ -112,11 +112,14 @@ The following 50 names/default branches were returned by the connected GitHub re
 
 ### `cybrcops/Cybrcom`
 
-- README explicitly labels the current React frontend as a local synthetic demo, not a live implementation of the foundation services. Build/lockfile/visual verification were stated as outstanding in the README.
-- Architecture positions CYBRCOM as a command/control plane with GREEN/YELLOW/RED authority, human approval, least privilege, model neutrality, auditability, and fail-closed behavior.
-- README calls the project proprietary/private; no root LICENSE file was found in this first pass.
-- This repository is also the user's live public CYBR COM website repository on its `site` branch. Keep the existing live branch and Hostinger connection untouched. Do not use `jarvisAI/hostinger-staging` as the CYBR COM staging source.
-- Decision: reuse the command authority model and documented policy concepts as architecture references; do not copy demo UI as if it were production-ready, and do not deploy or alter live hosting.
+- **Corrected status (2026-11-14):** the README still describes a synthetic demo, but main now contains a hybrid pre-production implementation. The Command and Security Feed views connect to a local CYBRCOM server; landing/Overview/Tasks/Review remain synthetic, and Connections still reports integrations disconnected. The README is stale/incomplete relative to the merged code.
+- Main merged PR #3 from `feat/command-console-live` on 2026-11-13; latest observed main commit is `b7c86e0b77affb58b09c1e0e959108e0af6ca630`.
+- The server provides local SQLite SOC intake/polling, a static roster/status board, Mira chat, a narrow GREEN/YELLOW tool set, approvals, run records, and a work board. It is not yet a full workforce, cross-business control plane, or 24/7 service.
+- The current Mira implementation uses the Anthropic SDK, `claude-opus-5-5`, provider default fallbacks, and a default USD 10/day budget. A configured budget of zero also falls through to 10 due the current `Number(value) || 10` expression. This conflicts with the owner's no-paid-API/no-paid-fallback requirement; do not enable this model path for CYBR operations.
+- Remote console access is loopback-only when no token is configured; when configured, a shared static Bearer token is used. No per-user identity, MFA/step-up, tenant-aware session, or full action-bound approval hash was found in the inspected path. Do not expose the server publicly.
+- The current voice hook is explicit push-to-talk, but Chrome/Edge browser recognition sends audio to the browser vendor's speech service. It is not a local-only speech path. No installable PWA/iPhone validation was performed.
+- The repo's `site` branch exists and remains the existing public website/Hostinger source. Keep that branch, Hostinger connection, document root, DNS, and live site untouched. The `site` branch was not reviewed or changed.
+- Decision: preserve Cybrcom as the separate command-console/public-site repository; use its policy and local SOC prototype as architecture/source material only. See `docs/CYBR-COMMAND-CONSOLE-AUDIT.md` in the Julie audit branch for the detailed source review. No deployment or live-hosting change is authorized.
 
 ### `cybrcops/AI`
 
@@ -270,3 +273,29 @@ Inspected `VoiceStudio/docs/api-auth.md` and `VoiceStudio/docs/mcp.md`.
 - Inspect Ruflo MCP/tool implementation and sandbox configuration rather than relying on package metadata.
 - Inspect VoiceStudio production-private deployment pattern and exact selected model card/weight files before any commercial use.
 - Review jarvisAI tests and source files in a suitable isolated environment before claiming build/security status.
+
+
+## 2026-11-14 — Current source and freshness update
+
+This refresh records current branch/commit evidence and supersedes older repository descriptions where noted. It is still a focused static audit, not a complete audit of all discovered repositories.
+
+| Repository | Latest observed main commit | Current evidence/status |
+|---|---|---|
+| `cybrcops-platform` | `dc45caf5` — 2026-11-04 | Primary CYBR MISSION source of truth. Partial live CRM/Tickets UI and closed-list read API observed. AAL2/JWT/membership/role/permission server gate partially inspected. Direct SQL/RLS and full route inventory remain open. |
+| `Cybrcom` | `b7c86e0b` — 2026-11-13 | Hybrid pre-production local command/SOC prototype; README status is stale. Direct Anthropic model/default fallback and static shared-token access block production use under current owner policy. `site` branch exists and was not touched. |
+| `jarvisAI` | `2e1c908a` — 2026-11-13 | Julie foundation candidate; bridge still Anthropic Agent SDK-coupled. Provider-neutral FreeLLMAPI integration is not implemented. Audit work remains on `feat/julie-repository-audit`. |
+| `VoiceStudio` | `dd0f6bde` — 2026-11-14 | Latest observed main merge is release `v0.5.9-beta.2`. App is AGPL-3.0; exact speech model/weight rights remain unresolved. No Julie integration. |
+| `ruflo` | `002d8c1a` — 2026-11-12 | Latest observed release is 3.77.0. Recent optional neural/FANN and judge-routing changes do not resolve worker execution, MCP permission, sandbox, egress, or resource-limit review. Keep workers disabled. |
+| `freellmapi` | `e03d74d9` — 2026-11-12 | Catalog update reports 87 providers and 1,313 endpoints. This is not evidence that routes are free or stable. Use explicit model/provider allowlist and disable all paid routes/fallbacks. |
+| `OpenJarvis` | `afdbd5b3` — 2026-11-13 | Latest observed commit is clone-traffic metadata; no new runtime/security conclusion. Continue code/license review before reuse. |
+| `AI` | `c04dfbd8` — 2026-10-06 | Only initial commit observed; README remains a short collection description. No reusable component is approved. |
+
+### Platform authorization source findings
+
+The detailed update in `docs/PLATFORM-INITIAL-AUDIT.md` supersedes the earlier statement that platform authentication/authorization had not yet been inspected. The inspected server gate verifies the caller JWT, AAL2, one active membership, active role, explicit role permission, active permission, and `has_permission`; it uses the caller JWT and publishable/anon key rather than a service-role key. The `/api/mission` and `/api/crm` routes enforce organization filtering and closed resource/input allowlists. This is partial source evidence only: SQL/RLS policies and live deployment state remain unverified, and the in-memory per-process rate limiter/proxy-header assumption need review.
+
+### Command-console source findings
+
+The detailed `docs/CYBR-COMMAND-CONSOLE-AUDIT.md` supersedes the earlier description of Cybrcom as only a static synthetic frontend. It records the current mixed demo/live behavior, local-only server defaults, limited tool surface, direct Anthropic/fallback conflict, static-token remote-access gap, approval/audit limitations, static roster, browser speech privacy caveat, and absence of a verified Julie/cross-business adapter or installable PWA.
+
+No NUC, Hostinger, Cloudflare, DNS, `site` branch, live website, production service, customer data, or secret was touched in this refresh.
