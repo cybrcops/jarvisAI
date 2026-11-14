@@ -15,7 +15,7 @@ Preferred initial composition:
 - **Model gateway:** FreeLLMAPI is a candidate OpenAI-compatible routing layer. Treat free quotas/catalogs as volatile; configure an explicit allowlist, strict budget/rate limits, provider status display, and fail-closed behavior. No paid fallback or premium catalog purchase.
 - **Orchestration:** Ruflo is a candidate for development-time or bounded agent workflows, not the authority plane. Its tool permissions, shell/network execution, MCP configuration, and sandboxing require review before workers are enabled.
 - **Policy/approvals/audit:** CYBR COMMAND / Cybrcom architecture owns authorization, approvals, tenant scope, audit, emergency stop, and action policy. Julie coordinates but does not grant itself permissions.
-- **CRM:** Twenty is a reference/integration candidate; the dedicated `CRM` repository describes an independently owned CYBR MISSION CRM domain and explicitly says Twenty is a UX/product reference, not a fork. Do not conflate `CRM` with `twenty`.
+- **CRM:** Use the dedicated `CRM` repository as the only CRM codebase under consideration. Twenty is explicitly excluded from Julie's architecture and implementation; do not integrate it, depend on it, or copy its code.
 - **Memory:** implement a Julie-owned, consented, scoped memory contract; do not treat agent trace stores, CRM notes, or speech artifacts as Julie personal memory.
 - **Infrastructure:** no NUC, Hostinger, Cloudflare, DNS, live site, or production changes are authorized by this audit.
 
@@ -37,7 +37,7 @@ The following 50 names/default branches were returned by the connected GitHub re
 | `cybrmission-website` | `main` | Public website candidate; inspect deployment relationship |
 | `AI` | `main` | AI collection; README is only a short description |
 | `awesome-llm-apps` | `main` | LLM application examples; evaluate provenance/dependencies |
-| `twenty` | `main` | Twenty CRM upstream/fork codebase; AGPLv3 plus exceptions |
+| `twenty` | `main` | **Excluded by user decision (2026-11-14); no further review or reuse** |
 | `zero-breach-toolkit` | `main` | Defensive spyware-evidence triage; read-only intent, validate limits |
 | `data-removal-service` | `main` | Privacy/data-removal service; inspect before integration |
 | `fieldwork` | `main` | Unclassified / possible operational app |
@@ -123,11 +123,10 @@ The following 50 names/default branches were returned by the connected GitHub re
 - README currently contains only a short collection description. No root LICENSE file found in first pass.
 - Decision: inventory contents before treating this as a reusable codebase; no license assumptions.
 
-### `cybrcops/twenty`
+### `cybrcops/twenty` — excluded
 
-- README describes a self-hostable CRM with objects, views, workflows, agents, APIs, and app extensions.
-- LICENSE says the repository is primarily AGPLv3, with marked commercial-license files and selected MIT-licensed SDK/UI/app packages. Verify the license of each file/package actually reused.
-- Decision: reference product patterns or use documented APIs. Avoid copying AGPL core into a proprietary CYBR MISSION service without a deliberate compliance review. Keep customer workspaces and data tenant-isolated.
+- Explicitly excluded from Julie's selected architecture by user direction on 2026-11-14.
+- Do not integrate, install, depend on, copy, or spend further audit effort on this repository unless the user explicitly reverses this decision.
 
 ### `cybrcops/CRM`
 
@@ -172,7 +171,7 @@ The following 50 names/default branches were returned by the connected GitHub re
 | LLM gateway | `freellmapi` | Reuse behind strict provider allowlist; no paid routes/fallback |
 | Agent workflows | `ruflo` | Optional bounded worker layer after sandbox and permission audit |
 | Command policy/approval | `Cybrcom` architecture | Build/own as first-party control plane; not delegated to an agent |
-| CRM | `CRM` domain + optional Twenty APIs | Mission CRM owns schema/data; Twenty is reference/integration, not automatic fork |
+| CRM | `CRM` | Mission CRM is the only CRM codebase under consideration; Twenty excluded |
 | Personal local-AI patterns | `OpenJarvis` | Study memory, local inference, evaluation, and scheduled-task patterns |
 | Security review workflow | `security-audit-skill` | Adapt evidence/verification methodology only within isolated authorized environment |
 | Autonomous security testing | `pentagi`, `Hacking-Tools`, `GDorks`, payload repos | Separate lab only; no general Julie tool exposure |
@@ -196,7 +195,7 @@ The following 50 names/default branches were returned by the connected GitHub re
 1. Complete per-repository metadata: latest commit/date, license file, package manifests/lockfiles, CI, and default-branch status.
 2. Review `jarvisAI` bridge endpoints, tool permission callbacks, auth/session handling, origin checks, filesystem confinement, and dependencies.
 3. Review FreeLLMAPI configuration and routing code for paid-provider disablement, fallback semantics, secret storage, and catalog update trust.
-4. Review Ruflo tool registry, MCP permissions, worker process isolation, and the previous Twenty port conflict.
+4. Review Ruflo tool registry, MCP permissions, worker process isolation, and worker process/port isolation.
 5. Review VoiceStudio auth, admin route exposure, MCP path confinement, model inventory, and selected model weights.
 6. Define first-party Julie contracts: provider adapter, voice adapter, memory scope, action schema, approval token, audit event, and kill-switch interfaces.
 7. Implement the iPhone-friendly PWA shell on a feature branch; run only safe static/build checks available in the remote environment. Do not claim device validation.
@@ -209,7 +208,6 @@ The following 50 names/default branches were returned by the connected GitHub re
 - `ruflo/README.md`, `ruflo/LICENSE`
 - `freellmapi/README.md`, `freellmapi/LICENSE`, `freellmapi/docs/en/architecture/00-high-level-index.md`, `freellmapi/docs/en/api/01-rest-api.md`
 - `Cybrcom/README.md`, `Cybrcom/docs/AUTHORITY-MODEL.md`, `Cybrcom/SECURITY.md`, `Cybrcom/docs/DEMO.md`
-- `twenty/README.md`, `twenty/LICENSE`
 - `CRM/README.md`, `CRM/docs/ARCHITECTURE.md`, `CRM/docs/TWENTY-REFERENCE.md`
 - `OpenJarvis/README.md`, `JARVIS/README.md`, `security-audit-skill/README.md`, `pentagi/README.md`, `zero-breach-toolkit/README.md`, `claude-skills/README.md`
 
