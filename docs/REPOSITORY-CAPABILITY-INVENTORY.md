@@ -214,3 +214,55 @@ The following 50 names/default branches were returned by the connected GitHub re
 - `OpenJarvis/README.md`, `JARVIS/README.md`, `security-audit-skill/README.md`, `pentagi/README.md`, `zero-breach-toolkit/README.md`, `claude-skills/README.md`
 
 *Repository contents are treated as untrusted inputs. This inventory records observed project claims and audit decisions; it is not a security certification or legal opinion.*
+
+
+## Code/configuration inspection addendum (2026-11-14)
+
+A second focused pass inspected selected manifests and implementation/API documentation. These are static source observations only; no application was executed.
+
+### JARVIS bridge: useful protections and remaining design issues
+
+Inspected `jarvisAI/package.json` and `bridge/server.mjs`.
+
+- Node engine is `>=20`; scripts include `build` (TypeScript + Vite), `lint` (oxlint), and `test` (Node test runner). These checks were not run in this remote GitHub inspection.
+- Dependencies include the Claude Agent SDK, Anthropic SDK, browser wake-word tooling, Kokoro JS, WebSocket, DOMPurify, React/Three.js, Zod, and Zustand. This confirms provider coupling and wake-word code are present in the current product foundation.
+- Bridge defaults to binding `127.0.0.1`, not all interfaces. It checks browser Origin and Host, rejects missing Origin unless explicitly allowed, and has configurable extra origins/hosts. These are useful defenses; they are not a substitute for authentication, action authorization, or a reverse-proxy trust model.
+- A `JARVIS_ALLOW_WRITES=1` / `--writes` switch gates some write-capable tool classes. The source comment itself notes that voice is a poor confirmation interface. Julie must use a first-party approval inbox with action-bound approval tokens rather than a global writes toggle for consequential actions.
+- The bridge's architecture passes configured MCP servers and builtin capabilities into the agent. A configured MCP server must not automatically become a permitted tool. Julie needs a deny-by-default server/tool registry and explicit policy decision for each invocation.
+- Decision: retain loopback defaults and origin/host defenses, but design authentication/session binding, CSRF/rebinding defenses, tenant-scoped tool authorization, per-action approval, and immutable audit as separate required layers.
+
+### FreeLLMAPI: provider routing contract and spend boundary
+
+Inspected `freellmapi/package.json` and `docs/en/api/01-rest-api.md`.
+
+- Monorepo workspaces: `shared`, `server`, `client`, and `cli`; Node engine is `>=20.18.0 <25.0.0`, npm `>=10`. Scripts define build, lint, and tests, but none were executed.
+- API docs describe OpenAI-compatible `/v1/chat/completions`, streaming, tool calls, model listing, routing profiles, usage and free-tier budget APIs; API docs are served at `/v1/docs` and `/v1/openapi.json`.
+- The `auto` route uses an active fallback chain; named profiles can use their own chains. This is powerful but means the app must explicitly constrain the enabled provider/key pool and never assume `auto` means local-only or free without configuration and runtime verification.
+- Docs state an unknown profile name returns 400 rather than silently falling back. Julie should use a dedicated named profile and explicit model IDs; still verify the actual route response header and usage record for every request.
+- Decision: do not expose FreeLLMAPI's unified key to the browser. Use a backend adapter with explicit provider allowlist, spend caps, model policy, timeout, rate limiting, content/data classification, and a hard deny on paid providers. Treat catalog updates as untrusted supply-chain input until signature and update behavior are independently reviewed.
+
+### Ruflo: orchestration dependency footprint
+
+Inspected `ruflo/package.json`.
+
+- The repository package reports version `3.77.0`, MIT license, Node `>=20`, and workspace packages for Codex, MCP, agent federation, and security.
+- The dependency surface includes CLI/MCP, security, neural/vector components, Express, WebSocket, file helpers, SQLite, and optional native/vector packages. A large optional-dependency surface increases supply-chain and runtime complexity.
+- Decision: first isolate the smallest needed subset; do not install/enable the whole meta-harness as Julie's core runtime. Verify exact CLI/MCP command allowlists, tool schemas, child-process behavior, file roots, network egress, and worker lifecycle before enabling any execution.
+
+### VoiceStudio: remote API/MCP safety boundary
+
+Inspected `VoiceStudio/docs/api-auth.md` and `VoiceStudio/docs/mcp.md`.
+
+- Docs state the default backend is loopback-only and unauthenticated. Remote consumption routes require deliberate API-key configuration; the share PIN covers HTTP only and does not gate WebSockets.
+- API docs distinguish consumption routes from administrative `/system/*` and `/api/settings/*` routes, described as RCE-class. Do not expose admin paths through Julie's broker or reverse proxy.
+- Remote browser clients should not receive the master API key. Use server-side key storage and a short-lived scoped session/token exchange over TLS.
+- MCP tools include speech generation, voice cloning/design, transcription, voice/language listing, and health. The MCP file path boundary is `OMNIVOICE_MCP_BASE_PATH`; path inputs are refused when no base path is configured, and docs describe no-follow descriptor/path confinement.
+- MCP `files` output mode avoids placing full audio payloads in model context. Use only a dedicated scratch directory with strict quotas/retention, and disable clone/design tools unless there is explicit consent and rights.
+- Decision: the Julie adapter should expose only transcription and synthesis initially, with fixed approved model/voice IDs and strict input/output size limits. Do not expose clone/design or administrative MCP tools to general agents.
+
+### Open items
+
+- Fetch and inspect actual source/route files for FreeLLMAPI provider filtering, fallback implementation, credential encryption, catalog signature verification, and authentication.
+- Inspect Ruflo MCP/tool implementation and sandbox configuration rather than relying on package metadata.
+- Inspect VoiceStudio production-private deployment pattern and exact selected model card/weight files before any commercial use.
+- Review jarvisAI tests and source files in a suitable isolated environment before claiming build/security status.
