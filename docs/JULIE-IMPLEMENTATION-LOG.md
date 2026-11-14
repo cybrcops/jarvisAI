@@ -33,3 +33,25 @@
 3. Define provider/voice adapters and policy contracts before wiring integrations.
 4. Build the PWA shell on a feature branch; verify only checks that can actually run in the remote environment.
 5. Create a draft PR for human review; never merge or deploy.
+
+
+## 2026-11-14 — Focused integration-boundary inspection
+
+### Additional source inspected
+- `jarvisAI/package.json` and `bridge/server.mjs`: confirmed Node/build/lint/test scripts, Claude Agent SDK coupling, loopback bind default, Origin/Host checks, missing-Origin rejection by default, and a broad MCP/tool surface. A global write-enable flag is not sufficient for action-specific approvals.
+- `freellmapi/package.json` and `docs/en/api/01-rest-api.md`: confirmed workspace structure, OpenAI-compatible chat/streaming/tool-call APIs, active and named fallback profiles, and model/usage endpoints. `auto` depends on configured provider pools; never assume it is free/local-only.
+- `ruflo/package.json`: confirmed v3.77.0 MIT package, Node >=20, MCP/Codex/security workspaces and a broad optional dependency footprint.
+- `VoiceStudio/docs/api-auth.md` and `docs/mcp.md`: confirmed loopback unauthenticated default, remote API key behavior, PIN not guarding WebSockets, separation of consumption vs admin routes, and MCP base-path confinement.
+
+### Updated artifacts
+- Expanded `docs/REPOSITORY-CAPABILITY-INVENTORY.md` with code/configuration observations and remaining verification items.
+- Existing draft PR #1 automatically includes the additional inventory commit.
+
+### Decisions reinforced
+- Julie must use a server-side provider adapter and an explicit provider/model allowlist; no implicit `auto` chain or paid fallback.
+- Julie must use an action-specific approval inbox; do not rely on the JARVIS global writes flag.
+- VoiceStudio integration must be brokered; expose only approved transcription/synthesis operations and never administrative endpoints or master credentials.
+- Ruflo remains disabled as an execution worker until its MCP/tool permissions and OS-level sandbox are verified.
+
+### Validation status
+Static GitHub source inspection only. No package installation, build, lint, tests, live API calls, security scan, NUC interaction, or device test was performed.
