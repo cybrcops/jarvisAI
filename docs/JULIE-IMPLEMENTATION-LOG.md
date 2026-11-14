@@ -114,3 +114,54 @@ This rule is persistent for all future Julie work, not limited to the current au
 ### Validation and operational impact
 - Documentation/source review only; no build, tests, deployment, or runtime integration performed.
 - No NUC, Hostinger, Cloudflare, DNS, production services, or customer data touched.
+
+
+## 2026-11-14 — Platform authorization and CYBR COM console source audit
+
+### CYBR MISSION platform source inspected
+
+Repository `cybrcops/cybrcops-platform`, branch `main`:
+- Latest observed commit: `dc45caf5e1946bead8e9ea9814a526044ee1a43b` (2026-11-04, release of real CRM and Tickets screens).
+- Inspected `apps/web/src/hooks/use-supabase-auth.ts`, `mission-identity.ts`, `authorization.server.ts`, `security/policy.ts`, `security/capabilities.ts`, `mission-resources.ts`, `routes/api.mission.ts`, `routes/api.crm.ts`, `api.server.ts`, `rate-limit.server.ts`, `mission-client.ts`, and `portal-product/crm.ts`.
+- Verified at source level: AAL2 client gating; server Bearer JWT verification; exact subject check; one active organization membership; active role; explicit role permission and active permission; `has_permission` RPC; caller-scoped Supabase client using anon/publishable key, with service-role keys rejected.
+- Verified at source level: closed resource/field allowlist; POST-only `/api/mission` with organization filter, private no-store response and 100-row cap; `/api/crm` lead create/move path with `crm.manage`, strict input validation, organization filter and caller JWT.
+- Commit `dc97769587163c6039076a9f4dbbfd8f9d8bad3c` added live read-only ticket UI. The resource allowlist includes clients, leads, tickets, alerts, incidents, policies, contracts and invoices; this is not proof all product modules have complete live UI.
+- Open issues: actual migration/RLS SQL was not located in the paths searched; no live database query was made; complete route inventory is not finished; API logging does not show explicit actor/tenant audit metadata in the inspected wrapper; in-memory per-process rate limiting and the trusted `X-Forwarded-For` proxy assumption need validation.
+- Commit `2e6968585be1909c8185f77000952e5a0dfab425` documents migration 023 restoring the public `has_permission` wrapper after migration 020 moved the helper to `private`. Commit notes report applied migration and throwaway Postgres checks; this run did not independently validate production DB state or replay SQL.
+
+### CYBR COM command-console source inspected
+
+Repository `cybrcops/Cybrcom`, branch `main`:
+- Latest observed main commit: `b7c86e0b77affb58b09c1e0e959108e0af6ca630`, merge of PR #3 from `feat/command-console-live` on 2026-11-13.
+- Branch listing confirms `site` exists. The live public website/Hostinger source remains that branch by owner decision; it was not fetched, changed, repointed, or deployed.
+- Inspected `README.md`, `package.json`, `src/App.tsx`, `src/console/CommandView.tsx`, `useConsoleState.ts`, `MiraPanel.tsx`, `voice.ts`, `server/index.ts`, `server/app.ts`, `server/agent/mira.ts`, `tools.ts`, `approvals.ts`, `records.ts`, `console/agents.ts`, `console/live.ts`, SOC store/poller/intake/signature, and `vite.config.ts`.
+- Corrected the earlier inventory statement that Cybrcom was only a synthetic frontend: main is now a hybrid pre-production prototype. Command and Security Feed connect to a local server; landing/Overview/Tasks/Review remain synthetic; Connections reports disconnected.
+- Confirmed current Mira is Anthropic SDK/Claude Opus 5.5-coupled with default provider fallback and default USD 10/day budget; zero budget falls back to 10 due `Number(value) || 10`. This violates current no-paid/no-paid-fallback policy and must not be enabled for CYBR operations.
+- Console uses loopback-only access when no token is set, or a shared static Bearer token when configured; no per-user identity/MFA/step-up was found in the inspected server. Do not expose it publicly.
+- SOC push intake uses timestamped HMAC-SHA256 and a five-minute skew window; local SQLite stores events/incidents. Optional pull polling runs every 60 seconds and sends a bearer key to an environment-configurable URL without a visible host allowlist. Add HTTPS/destination allowlisting before privileged use.
+- The roster is static and planned times are computed from fixed values; status JSON is not proof that agent processes are executing. There is no verified full workforce scheduler or 24/7 runtime.
+- Approval queue stores request-time arguments and expires after 30 minutes, but the inspected flow lacks payload-hash binding, MFA step-up, and tamper-evident audit. Run records store clipped but not explicitly classified/redacted owner messages and tool I/O.
+- Voice is explicit push-to-talk; Chrome/Edge recognition sends audio to browser-vendor speech services. No installable PWA/iPhone validation was performed. No Julie EA persona or CYBR MISSION/CYBRCOPS cross-business adapter was found in inspected paths.
+
+### Documentation changes
+
+- Created `docs/CYBR-COMMAND-CONSOLE-AUDIT.md` — commit `6be23becf85f0af805de80e2f60e3fdc622bc1b7`.
+- Updated `docs/PLATFORM-INITIAL-AUDIT.md` with partial auth/API findings and remaining RLS gaps — commit `2ad0b642261d186a970045324701a598d2e7d0df`.
+- Updated `docs/REPOSITORY-CAPABILITY-INVENTORY.md` to correct Cybrcom status and add repo freshness evidence — commit `554d905e414b38b1b45ecf6699e5141d0dacd1ce`.
+- Existing `docs/JULIE-MIRA-OPERATING-MODEL.md` continues to define Julie as the owner's direct Personal EA and Mira as Chief of Staff, with separate owner-private, company, and customer scopes.
+
+### Validation and operational impact
+
+- Static GitHub source inspection and documentation commits only.
+- No package installation, build, lint, typecheck, tests, security scan, live API request, database query, runtime execution, or device test.
+- No NUC, Hostinger, Cloudflare, DNS, `site` branch, public website, production service, customer data, or secret was touched.
+- No code, schema, dependency, model, infrastructure, or deployment configuration was changed.
+- Existing draft PR #1 on `feat/julie-repository-audit` remains the human-review path; no merge or deployment was performed.
+
+### Next work
+
+1. Locate and inspect the platform's actual migration/RLS source and enumerate all API routes, server clients, and privileged operations.
+2. Build synthetic authorization tests for wrong-tenant, expired membership, disabled role/permission, non-AAL2, customer role, and unauthorized module access.
+3. Define a read-only Julie adapter contract against verified `cybrcops-platform` endpoints, with explicit CYBR MISSION/CYBRCOPS/customer scopes and source/freshness metadata.
+4. Refactor Cybrcom's model path behind a free/local-only provider interface; remove paid default fallback and make zero budget a hard disable.
+5. Design proper owner identity/MFA, action-bound approval hash, immutable audit, and independent kill switch before any remote command-console access.
