@@ -114,3 +114,18 @@ Do not use owner or service-role queries as proof of RLS. Obtain a reproducible 
 - Not performed: data-row reads, DDL/DML, migration apply, settings change, build, tests, scan, penetration test, external scan, NUC access, iPhone test.
 - No NUC, Hostinger, Cloudflare, DNS, public website, production application configuration, customer data, credentials, or secrets were changed or retrieved.
 - This document is an audit record, not authorization to change production.
+
+## 2026-11-14 — Sensitive-column projection review (metadata only)
+
+A read-only query of `information_schema.columns` and `has_column_privilege` confirmed that the PostgreSQL `authenticated` role has SELECT privilege on these sensitive or potentially sensitive columns:
+
+- `api_keys.key_hash` (plus `key_prefix` and `scopes`)
+- `integrations.config`, `integrations.secret_reference`, and `integrations.last_error`
+- `webhooks.headers`, `webhooks.signing_secret_reference`, and `webhooks.endpoint_url`
+- `soc_ingest_sources.source_key` and `enabled`
+
+The inspected RLS policy for `api_keys`/integration metadata gates rows using `integrations.manage`; RLS is organization-scoped, but RLS does not provide column-level secrecy. A caller who is authorized to see a row may still be able to select every column for which the role has SELECT privilege. The actual values were not queried, so this is a **confirmed exposure surface / design risk**, not proof that raw credentials are stored or that a credential was disclosed. `key_hash` is a hash, and secret-reference fields may be opaque vault identifiers; nevertheless these should not be exposed by default to general authenticated clients or Julie.
+
+**Required remediation design (not applied):** use explicit safe-column grants/views or narrowly scoped server-side projections; keep raw secrets in an approved server-side vault; separate integration metadata view from credential management; redact `config`, `headers`, `last_error`, source keys, and secret references from model context and ordinary audit logs; add tests that authenticated users with and without `integrations.manage` cannot retrieve protected fields. Preserve organization RLS and do not broaden service-role access.
+
+No values, tokens, headers, hashes, or secret references were read. No grants, policies, views, tables, or application code were changed.
